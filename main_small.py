@@ -8,7 +8,12 @@ import cv2
 from model.DBFaceSmallH import DBFace
 
 HAS_CUDA = torch.cuda.is_available()
+# 使用cpu
+# HAS_CUDA = False
+
 print(f"HAS_CUDA = {HAS_CUDA}")
+
+
 
 
 def nms(objs, iou=0.5):
@@ -127,7 +132,7 @@ def camera_demo():
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    image_demo()
+    # image_demo()
     camera_demo()
     
 

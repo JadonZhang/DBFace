@@ -202,7 +202,8 @@ class DBFace(nn.Module):
 
 
     def load(self, file):
-        print(f"load model: {file}")
+        print(f"load model")
+        # print(f"load model: {file}")
 
         if torch.cuda.is_available():
             checkpoint = torch.load(file)

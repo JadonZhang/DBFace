@@ -78,9 +78,13 @@ def detect_image(model, file):
     objs = detect(model, image)
 
     for obj in objs:
+        # 增加对五官的检测
+        frame = organ_detection(image, obj)
         common.drawbbox(image, obj)
 
-    common.imwrite("detect_result/" + common.file_name_no_suffix(file) + ".draw.jpg", image)
+    cv2.imshow('demo', image)
+    cv2.waitKey()
+    # common.imwrite("detect_result/" + common.file_name_no_suffix(file) + ".draw.jpg", image)
 
 
 def image_demo():
@@ -92,8 +96,8 @@ def image_demo():
         dbface.cuda()
 
     dbface.load("model/dbface.pth")
-    detect_image(dbface, "datas/selfie.jpg")
-    detect_image(dbface, "datas/12_Group_Group_12_Group_Group_12_728.jpg")
+    # detect_image(dbface, "datas/selfie.jpg")
+    detect_image(dbface, "datas/1.jpg")
 
 
 def camera_demo():
@@ -108,15 +112,26 @@ def camera_demo():
     cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 480)
+    # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+
+    cap.set(cv2.CAP_PROP_FPS, 2)
     ok, frame = cap.read()
 
+
     while ok:
+        # frame = cv2.resize(frame, (480, 640))
+
         objs = detect(dbface, frame)
 
         for obj in objs:
+            # 增加对五官的检测
+            frame = organ_detection(frame, obj)
+
             common.drawbbox(frame, obj)
 
-        cv2.imshow("demo DBFace", frame)
+
+        cv2.imshow("demo", frame)
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
             break
@@ -126,8 +141,50 @@ def camera_demo():
     cap.release()
     cv2.destroyAllWindows()
 
+# 载入人脸识别和眼睛识别的两个xml文件
+eye_xml = cv2.CascadeClassifier('haarcascade_eye_tree_eyeglasses.xml')# 效果更好
+# eye_xml = cv2.CascadeClassifier('haarcascade_eye.xml')
+mouth_xml = cv2.CascadeClassifier('haarcascade_mcs_mouth.xml')
+
+def organ_detection(frame, bbox):
+    # 灰度处理
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # 在人脸的基础上识别眼睛
+    x, y, r, b = common.intv(bbox.box)
+    w = r - x + 1
+    h = b - y + 1
+    face_gray = gray[y:y + h, x:x + w]
+    face_color = frame[y:y + h, x:x + w]
+    # 眼睛识别
+    position = eye_xml.detectMultiScale(face_gray)
+    # 绘制出识别到的眼睛
+    for (p_x, p_y, p_w, p_h) in position:
+        cv2.rectangle(face_color, (p_x, p_y), (p_x + p_w, p_y + p_h), (255, 255, 0), 2)  # 绘制眼睛方框
+
+    # 嘴巴识别
+    if bbox.haslandmark:
+        x_r, y_r = common.intv(bbox.landmark[3][:2])
+        x_l, y_l = common.intv(bbox.landmark[4][:2])
+    mouth_w = x_l - x_r + 40
+    mouth_h = x_l - x_r
+    x = x_r - 20
+    y = y_r - mouth_h // 2
+
+    # 嘴部的检测区域
+    cv2.rectangle(frame, (x, y), (x + mouth_w, y + mouth_h), (0, 50, 0), 2)
+
+    face_gray = gray[y:y + mouth_h, x:x + mouth_w]
+    face_color = frame[y:y + mouth_h, x:x + mouth_w]
+    position = mouth_xml.detectMultiScale(face_gray)
+    # 绘制出识别到的嘴巴
+    for (p_x, p_y, p_w, p_h) in position:
+        cv2.rectangle(face_color, (p_x, p_y), (p_x + p_w, p_y + p_h), (0, 255, 0), 2)  # 绘制嘴巴
+
+    return frame
+
 if __name__ == "__main__":
-    image_demo()
+    # image_demo()
     camera_demo()
     
 
