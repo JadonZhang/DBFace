@@ -168,11 +168,16 @@ class App(object):
         self.model.cuda(device=self.gpu_master)
         self.model.train()
 
+        # 三个loss
         self.focal_loss = losses.FocalLoss()
         self.giou_loss = losses.GIoULoss()
         self.landmark_loss = losses.WingLoss(w=2)
+
+        # 构建dataset部分，继承torch的dataset类
         self.train_dataset = LDataset(labelfile, imagesdir, mean=self.mean, std=self.std, width=self.width, height=self.height)
         self.train_loader = DataLoader(dataset=self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=24)
+        
+        # 优化器adam
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         self.per_epoch_batchs = len(self.train_loader)
         self.iter = 0

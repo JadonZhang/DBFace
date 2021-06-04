@@ -186,7 +186,7 @@ def organ_detection(frame, bbox):
 if __name__ == "__main__":
     # image_demo()
     camera_demo()
-    
 
 
-    
+
+

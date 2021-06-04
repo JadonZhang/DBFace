@@ -16,6 +16,7 @@ print(f"HAS_CUDA = {HAS_CUDA}")
 
 
 
+
 def nms(objs, iou=0.5):
 
     if objs is None or len(objs) <= 1:
@@ -134,7 +135,4 @@ def camera_demo():
 if __name__ == "__main__":
     # image_demo()
     camera_demo()
-    
-
-
     
